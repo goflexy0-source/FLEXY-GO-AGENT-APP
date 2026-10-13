@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FLEXY-GO – Agent Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #00121f;
+  --card: #052336;
+  --card2: #072f49;
+  --g: #00C798;
+  --g2: #00E6B0;
+  --line: rgba(8, 121, 167, 0.35);
+  --t: #EAF7FF;
+  --m: #8BA7B8;
+  --err: #FF5B6E;
+  --font-bn: 'Hind Siliguri', system-ui, sans-serif;
+  --font-num: 'Plus Jakarta Sans', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  background: radial-gradient(circle at 50% 0, #062A40, #00121f 80%);
+  font-family: var(--font-bn);
+  color: var(--t);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+svg { flex: none; display: block; }
+[onclick] { cursor: pointer; }
+
+#app {
+  width: 390px;
+  height: min(844px, 100vh - 16px);
+  background: linear-gradient(180deg, #052438 0%, #00121f 100%);
+  border: 1px solid var(--line);
+  border-radius: 36px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 0 5px #021727, 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 199, 152, 0.12);
+}
+@media (max-width: 480px) {
+  #app { width: 100vw; height: 100dvh; border-radius: 0; border: 0; box-shadow: none; }
+}
+
+#scr {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 14px 18px;
+}
+#scr::-webkit-scrollbar { display: none; }
+.pg { min-height: 100%; display: flex; flex-direction: column; }
+
+/* Navigation Bar */
+nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 4px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(4, 27, 42, 0.96);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--m);
+}
+nav div { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; transition: 0.15s; }
+nav .a { color: var(--g); font-weight: 700; transform: translateY(-1px); }
+
+/* Headers */
+.hd { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; margin: 4px 0 12px; }
+.hd svg { color: var(--t); }
+
+/* Card Boxes */
+.box {
+  background: linear-gradient(180deg, var(--card) 0%, #031a29 100%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+}
+
+.in {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  color: var(--m);
+  font-size: 13.5px;
+  transition: 0.2s;
+}
+.in:focus-within { border-color: var(--g); box-shadow: 0 0 0 2px rgba(0, 199, 152, 0.18); }
+.in small { display: block; color: var(--m); font-size: 10.5px; }
+.in > div { flex: 1; min-width: 0; }
+.in input {
+  background: none;
+  border: 0;
+  outline: 0;
+  color: var(--t);
+  font: inherit;
+  font-size: 14px;
+  font-family: var(--font-num);
+  width: 100%;
+}
+.in input::placeholder { color: #496c82; font-family: var(--font-bn); }
+.pin-eye { color: var(--m); padding: 4px; display: grid; place-items: center; cursor: pointer; }
+.pin-eye:hover { color: var(--g); }
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: linear-gradient(135deg, var(--g2), var(--g));
+  color: #00221a;
+  font-weight: 700;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  box-shadow: 0 6px 20px rgba(0, 199, 152, 0.25);
+  transition: transform 0.1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn.o { background: transparent; color: var(--g); border: 1px solid var(--g); box-shadow: none; font-weight: 600; }
+.btn.danger { background: rgba(255, 91, 110, 0.15); color: var(--err); border: 1px solid rgba(255, 91, 110, 0.35); box-shadow: none; }
+
+.c { text-align: center; }
+.g { color: var(--g); }
+.m { color: var(--m); }
+.b { font-weight: 700; }
+.lbl { font-size: 12.5px; margin: 4px 0 6px; font-weight: 600; color: var(--t); }
+
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.kpi-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.kpi-title { font-size: 11px; color: var(--m); margin-bottom: 2px; font-weight: 600; }
+.kpi-val { font-size: 15px; font-weight: 800; font-family: var(--font-num); color: var(--t); }
+.kpi-split { display: flex; justify-content: space-between; font-size: 10px; margin-top: 4px; font-family: var(--font-num); }
+.kpi-split .ok { color: var(--g); font-weight: 700; }
+.kpi-split .fail { color: var(--err); font-weight: 700; }
+
+/* Quick Action Strip */
+.qa { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.qa div { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 2px 8px; text-align: center; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 600; }
+.qa svg { color: var(--g); }
+
+/* Operator Grid */
+.ops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.op { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px; transition: 0.2s; }
+.op.s { border-color: var(--g); box-shadow: 0 0 0 1px var(--g), 0 0 14px rgba(0, 199, 152, 0.2); background: #07354f; }
+.op b { font-size: 11.5px; font-weight: 600; }
+.ob { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: grid; place-items: center; overflow: hidden; padding: 2px; }
+.ob img { width: 100%; height: 100%; object-fit: contain; }
+
+.mode-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.mode-pill { flex: 1; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); text-align: center; font-size: 12px; font-weight: 700; color: var(--m); cursor: pointer; transition: 0.15s; }
+.mode-pill.s { border-color: var(--g); background: rgba(0, 199, 152, 0.12); color: var(--g); }
+
+.chips { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.chips span { flex: 1; min-width: 48px; text-align: center; border: 1px solid var(--line); background: var(--card); border-radius: 16px; padding: 6px 0; font-size: 12px; font-family: var(--font-num); font-weight: 700; }
+.chips .s { border-color: var(--g); color: var(--g); background: rgba(0, 199, 152, 0.15); }
+
+/* Plan Pricing Cards (Classic vs Higher) */
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 14px; }
+.plan-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 10px; text-align: center; }
+.plan-card.h { border-color: var(--g); background: linear-gradient(180deg, #073b56 0%, #032034 100%); box-shadow: 0 0 16px rgba(0,199,152,0.18); }
+.plan-badge { display: inline-block; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; letter-spacing: 0.5px; }
+.plan-badge.c { background: rgba(8,121,167,0.3); color: var(--t); }
+.plan-badge.h { background: rgba(0,199,152,0.25); color: var(--g); }
+.plan-fee { font-size: 20px; font-weight: 800; font-family: var(--font-num); color: var(--t); }
+.plan-com { font-size: 12.5px; font-weight: 700; color: var(--g); margin-top: 2px; font-family: var(--font-num); }
+.plan-sub { font-size: 10.5px; color: var(--m); margin-top: 4px; line-height: 1.3; }
+
+/* Timeline Transaction Row */
+.tx-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  transition: 0.15s;
+}
+.tx-icon-wrap { width: 34px; height: 34px; border-radius: 8px; background: rgba(8,121,167,0.2); display: grid; place-items: center; flex: none; overflow: hidden; }
+.tx-icon-wrap img { width: 22px; height: 22px; object-fit: contain; }
+.tx-mid { flex: 1; min-width: 0; line-height: 1.25; }
+.tx-mid b { font-size: 13.5px; font-family: var(--font-num); color: var(--t); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx-mid span { font-size: 11px; color: var(--m); }
+.tx-right { text-align: right; flex: none; line-height: 1.25; }
+.tx-right .amt { font-size: 14px; font-weight: 800; font-family: var(--font-num); }
+.tx-right .amt.p { color: var(--g); }
+.tx-right .amt.m { color: var(--err); }
+.tx-tag { display: inline-block; font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-top: 2px; }
+.tx-tag.ok { background: rgba(0,199,152,0.15); color: var(--g); }
+.tx-tag.fail { background: rgba(255,91,110,0.15); color: var(--err); }
+
+/* Filter Tabs */
+.filter-tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.filter-tabs::-webkit-scrollbar { display: none; }
+.f-chip { white-space: nowrap; padding: 6px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); font-size: 11.5px; font-weight: 600; color: var(--m); }
+.f-chip.a { background: rgba(0, 199, 152, 0.15); border-color: var(--g); color: var(--g); }
+
+/* Progress bar for reports */
+.prog-track { height: 6px; border-radius: 3px; background: rgba(8, 121, 167, 0.25); overflow: hidden; margin-top: 4px; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--g2), var(--g)); border-radius: 3px; }
+
+/* Bottom Sheet Modal */
+.custom-modal { position: absolute; inset: 0; background: rgba(0, 15, 26, 0.82); backdrop-filter: blur(8px); display: none; align-items: flex-end; justify-content: center; z-index: 500; }
+.custom-modal.s { display: flex; }
+.modal-box { width: 100%; background: #042438; border-top: 1px solid var(--g); border-radius: 24px 24px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px)); animation: slideUp 0.25s ease-out; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 38px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 0 auto 12px; }
+.modal-title { font-size: 15px; font-weight: 700; color: var(--g); margin-bottom: 12px; text-align: center; }
+
+/* Tap & Hold Confirmation Button */
+.hold-btn-wrap { position: relative; width: 100%; height: 50px; border-radius: 14px; overflow: hidden; background: #05314a; border: 1px solid var(--g); user-select: none; }
+.hold-progress { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: linear-gradient(90deg, var(--g), var(--g2)); transition: width 0.05s linear; pointer-events: none; }
+.hold-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--t); pointer-events: none; z-index: 2; }
+
+#toast { position: absolute; left: 16px; right: 16px; bottom: 70px; background: #052a42; border: 1px solid var(--g); color: var(--t); border-radius: 12px; padding: 10px 14px; text-align: center; font-size: 12.5px; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 999; }
+#toast.on { opacity: 1; }
+#sp { position: absolute; inset: 0; z-index: 1000; background: #00121f; transition: transform 0.4s ease; }
+#sp.o { transform: translateX(-100%); }
+#sp img { width: 100%; height: 100%; object-fit: cover; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- LAUNCH SPLASH (Exact 2s hold) -->
+  <div id="sp">
+    <img src="https://i.ibb.co/0Rm4Hjyz/photo-2026-10-13-09-18-59-7696079480258822188.jpg" alt="FLEXY-GO Splash">
+  </div>
+  
+  <div id="scr"></div>
+  <div id="nv"></div>
+  <div id="toast"></div>
+
+  <!-- NATIVE BOTTOM-SHEET RECHARGE CONFIRMATION -->
+  <div class="custom-modal" id="modalConfirmRec">
+    <div class="modal-box">
+      <div class="modal-handle"></div>
+      <div class="modal-title">রিচার্জ নিশ্চিতকরণ</div>
+      <div style="background:var(--bg);padding:10px 12px;border-radius:12px;margin-bottom:14px;border:1px solid var(--line);">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;"><span class="m">মোবাইল নম্বর</span><b id="revNumber" style="font-family:var(--font-num)">01XXXXXXXXX</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;"><span class="m">অপারেটর</span><b id="revOperator">GrameenPhone</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;"><span class="m">সিমের ধরন</span><b id="revType">Prepaid</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;"><span class="m">রিচার্জ পরিমাণ</span><b id="revAmount" style="color:var(--g);font-family:var(--font-num);font-size:15px;">৳ 0.00</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;"><span class="m">পরবর্তী ব্যালেন্স</span><b id="revBalanceAfter" style="font-family:var(--font-num)">৳ 0.00</b></div>
+      </div>
+      
+      <!-- Tap & Hold to Confirm Widget -->
+      <div class="hold-btn-wrap" id="btnHoldAction" 
+           onmousedown="window.startHold()" onmouseup="window.cancelHold()" onmouseleave="window.cancelHold()"
+           ontouchstart="window.startHold()" ontouchend="window.cancelHold()" ontouchcancel="window.cancelHold()">
+        <div class="hold-progress" id="holdProg"></div>
+        <div class="hold-text" id="holdLbl">চেপে ধরে রাখুন (Hold to Confirm)</div>
+      </div>
+      <button class="btn o" style="margin-top:8px;padding:9px;" onclick="closeConfirmModal()">বাতিল করুন</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { getDatabase, ref, onValue, get, child, update } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCxFTCaGhUstNaL8K9IGjENRLNsXjubkYI",
+    authDomain: "flexy-go.firebaseapp.com",
+    projectId: "flexy-go",
+    storageBucket: "flexy-go.firebasestorage.app",
+    messagingSenderId: "676121440593",
+    appId: "1:676121440593:web:d051ddfa0272948c952370",
+    databaseURL: "https://flexy-go-default-rtdb.firebaseio.com"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getDatabase(fbApp);
+  const SERVER_URL = "https://flexy-go.alwaysdata.net";
+  const ADMIN_HELPLINE = "01340560299";
+  const LOGO_URL = "https://i.ibb.co/LdPFT0t6/photo-2026-10-13-09-13-38-7696078101574320152.jpg";
+
+  // Vector Icons
+  const P = {
+    user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21c0-4 4-6 8-6s8 2 8 6',
+    lock: 'M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3M12 15v2',
+    home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+    rec: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M8 12h8m-3-3 3 3-3 3',
+    swap: 'M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7',
+    rep: 'M5 20V10M12 20V4M19 20v-7',
+    back: 'M19 12H5m6-6-6 6 6 6',
+    phone: 'M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+    ck: 'm5 12 5 5 9-10',
+    wal: 'M3 7a2 2 0 0 1 2-2h13v4M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2M16 14.5v.01',
+    key: 'M15 9a4 4 0 1 0-3 4l-8 8v-3h3v-3h3l1-2M16 8v.01',
+    out: 'M10 4H5v16h5M16 8l4 4-4 4M9 12h11',
+    search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16m10 2-4.35-4.35',
+    eye: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
+    eyeOff: 'M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20'
+  };
+  const I = (n, s=18, w=1.8) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"><path d="${P[n]}"/></svg>`;
+
+  // Dynamic Operators Array (Updated live from Firebase)
+  let OPERATORS = [
+    { id: 'gp', n: 'GrameenPhone', p: '017', code: '017', x: ['017','013'], logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/91/Grameenphone_Logo.svg/200px-Grameenphone_Logo.svg.png' },
+    { id: 'robi', n: 'Robi', p: '018', code: '018', x: ['018'], logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e0/Robi_logo.svg/200px-Robi_logo.svg.png' },
+    { id: 'bl', n: 'Banglalink', p: '019', code: '019', x: ['019', '014'], logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Banglalink_Logo.svg/200px-Banglalink_Logo.svg.png' },
+    { id: 'airtel', n: 'Airtel', p: '016', code: '016', x: ['016'], logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Airtel_logo.svg/200px-Airtel_logo.svg.png' },
+    { id: 'teletalk', n: 'TeleTalk', p: '015', code: '015', x: ['015'], logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/b/b2/Teletalk_Logo.svg/200px-Teletalk_Logo.svg.png' },
+    { id: 'skitto', n: 'Skitto', p: '013', code: '113', x: ['013'], logo: 'https://i.ibb.co/HTygdxZF/photo-2026-10-07-18-40-58-7693997791214829620.jpg' }
+  ];
+
+  let currentRetailer = null;
+  let S = {
+    op: -1,
+    amt: 0,
+    type: "1",
+    txList: [],
+    lastTrx: null,
+    hisTab: 'all',
+    searchQuery: ''
+  };
+
+  const $ = s => document.querySelector(s);
+  const toEn = str => (!str ? '' : str.toString().replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d)));
+  const bn = n => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  
+  const tw = m => { 
+    const el = $('#toast');
+    if (!el) return;
+    el.textContent = m; 
+    el.classList.add('on'); 
+    clearTimeout(tw.t); 
+    tw.t = setTimeout(() => el.classList.remove('on'), 2500); 
+  };
+  window.showToast = tw;
+  window.tw = tw;
+
+  // View / Hide PIN Toggle
+  window.togglePin = function(id, el) {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      el.innerHTML = I('eyeOff', 18);
+    } else {
+      inp.type = 'password';
+      el.innerHTML = I('eye', 18);
+    }
+  };
+
+  const NV = a => '<nav>' + [
+    ['home','home','হোম'],
+    ['rec','rec','রিচার্জ'],
+    ['his','swap','লেনদেন'],
+    ['rep','rep','রিপোর্ট'],
+    ['pro','user','প্রোফাইল']
+  ].map(x => `<div class="${x[0]==a?'a':''}" onclick="window.go('${x[0]}')">${I(x[1],20)}${x[2]}</div>`).join('') + '</nav>';
+
+  const hd = (t, b='login') => `<div class="hd"><span onclick="window.go('${b}')">${I('back',20)}</span>${t}</div>`;
+
+  // 1. Operator Logos Directly from Database
+  onValue(ref(db, 'carrier_config'), (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      OPERATORS.forEach(op => {
+        const k = op.id;
+        if (val[k] && val[k].logo) {
+          op.logo = val[k].logo;
+        }
+      });
+      const curView = $('#scr')?.getAttribute('data-view');
+      if (curView === 'rec' || curView === 'rep') window.go(curView);
+    }
+  });
+
+  // Attach Realtime Listeners
+  function attachRetailerListeners(phone) {
+    onValue(ref(db, `retailers/${phone}`), (snapshot) => {
+      const val = snapshot.val();
+      if (val) {
+        currentRetailer = { ...val, phone };
+        const balEl = document.getElementById('retailerLiveBalDisplay');
+        if (balEl) balEl.innerText = `৳ ${bn(currentRetailer.balance || 0)}`;
+      }
+    });
+
+    onValue(ref(db, 'transactions'), (snapshot) => {
+      const val = snapshot.val() || {};
+      const list = [];
+      Object.keys(val).forEach(k => {
+        const item = val[k];
+        if (item.retailerPhone === phone || item.phone === phone) {
+          list.push(item);
+        }
+      });
+      S.txList = list.reverse();
+      const curView = $('#scr').getAttribute('data-view');
+      if (curView === 'home' || curView === 'his' || curView === 'rep') {
+        window.go(curView);
+      }
+    });
+  }
+
+  function getMerchantMetrics() {
+    let todaySale = 0, monthSale = 0, totalSale = 0;
+    let todayOrders = 0, successOrders = 0, failedOrders = 0;
+    const todayStr = new Date().toLocaleDateString('en-GB');
+
+    S.txList.forEach(t => {
+      const amt = Number(t.amount) || 0;
+      const isSuccess = t.status === 'SUCCESS' || t.status === 'COMPLETED' || t.status === 'SETTLED';
+      const isFailed = t.status === 'FAILED';
+      const isAirtime = t.type === 'AIRTIME' || t.targetNumber;
+
+      if (isAirtime && isSuccess) {
+        totalSale += amt;
+        monthSale += amt;
+        if (t.timestamp && t.timestamp.includes(todayStr)) todaySale += amt;
+      }
+      if (isAirtime) {
+        todayOrders++;
+        if (isSuccess) successOrders++;
+        if (isFailed) failedOrders++;
+      }
+    });
+    return { todaySale, monthSale, totalSale, todayOrders, successOrders, failedOrders };
+  }
+
+  function getOperatorBreakdown() {
+    const map = {};
+    let total = 0;
+    OPERATORS.forEach(op => map[op.n] = 0);
+
+    S.txList.forEach(t => {
+      if ((t.status === 'SUCCESS' || t.status === 'COMPLETED' || t.status === 'SETTLED') && t.amount && (t.type === 'AIRTIME' || t.targetNumber)) {
+        const opName = t.operator || 'GrameenPhone';
+        map[opName] = (map[opName] || 0) + Number(t.amount);
+        total += Number(t.amount);
+      }
+    });
+    return { map, total };
+  }
+
+  function translateError(msg) {
+    if (!msg) return 'অপারেটর থেকে রিচার্জ সফল হয়নি, ব্যালেন্স ফেরত দেওয়া হয়েছে';
+    if (msg.includes('Minimum') || msg.includes('Maximum')) return 'রিচার্জের পরিমাণ 19 থেকে 5000 টাকার মধ্যে হতে হবে';
+    if (msg.includes('Not User')) return 'সার্ভার সমস্যা, অ্যাডমিনের সাথে যোগাযোগ করুন';
+    if (msg.includes('Timeout') || msg.includes('Gateway')) return 'অপারেটর গেটওয়েতে সমস্যা, পরে চেষ্টা করুন';
+    if (msg.includes('Number') || msg.includes('Invalid')) return 'মোবাইল নম্বরটি সঠিক নয়';
+    return msg;
+  }
+
+  // SCREEN VIEWS
+  const V = {
+    // 1. LOGIN SCREEN WITH PIN TOGGLE
+    login: () => `
+      <div class="pg">
+        <div class="c" style="margin-top:24px;margin-bottom:20px;">
+          <img src="${LOGO_URL}" style="width:58px;height:58px;border-radius:16px;object-fit:cover;box-shadow:0 6px 18px rgba(0,199,152,0.25);margin:0 auto 10px;">
+          <div class="b" style="font-size:24px;letter-spacing:0.5px;line-height:1.2;">FLEXY<span class="g">-GO</span></div>
+          <div style="font-size:11px;color:var(--m);">Agent Management System</div>
+        </div>
+
+        <div class="lbl" style="margin-bottom:8px;">রিটেইলার লগইন</div>
+        <div class="in">${I('user',18)}<div><small>মোবাইল নম্বর (11 Digits)</small><input id="mob" inputmode="numeric" maxlength="11" placeholder="01XXXXXXXXX"></div></div>
+        
+        <div class="in">
+          ${I('lock',18)}
+          <div><small>নিরাপত্তা PIN (4 Digits)</small><input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+          <span class="pin-eye" onclick="window.togglePin('pin', this)">${I('eye',18)}</span>
+        </div>
+        
+        <div style="text-align:right;font-size:12.5px;margin:0 0 14px"><span class="g" onclick="window.go('forgot')">PIN ভুলে গেছেন?</span></div>
+        <button class="btn" id="btnLoginSubmit" onclick="window.doLogin()">লগইন করুন</button>
+        
+        <div class="c m" style="font-size:11px;margin:14px 0;display:flex;align-items:center;gap:8px;"><i style="flex:1;height:1px;background:var(--line)"></i>অথবা<i style="flex:1;height:1px;background:var(--line)"></i></div>
+        <button class="btn o" onclick="window.go('create')">${I('user',16)} নতুন অ্যাকাউন্ট রেজিস্ট্রেশন</button>
+      </div>`,
+
+    // 2. CREATE ACCOUNT WITH CLASSIC & HIGHER PLANS
+    create: () => `
+      <div class="pg">
+        ${hd('নতুন অ্যাকাউন্ট রেজিস্ট্রেশন','login')}
+        <div class="box" style="text-align:center;padding:14px;">
+          <div class="b" style="font-size:15px;margin-bottom:4px;">রিটেইলার অ্যাকাউন্ট টাইপ বেছে নিন</div>
+          <div style="font-size:11.5px;color:var(--m);">অ্যাকাউন্ট চালু করতে পছন্দ অনুযায়ী প্যাকেজ সিলেক্ট করে অ্যাডমিনকে জানান</div>
+          
+          <div class="plan-grid">
+            <!-- Classic (Left) -->
+            <div class="plan-card">
+              <span class="plan-badge c">CLASSIC</span>
+              <div class="plan-fee">৳ 100</div>
+              <div class="plan-com">কমিশন: 1.0%</div>
+              <div class="plan-sub">স্ট্যান্ডার্ড রিটেইলার সুবিধা ও নিয়মিত রিচার্জ সাপোর্ট</div>
+            </div>
+            
+            <!-- Higher (Right) -->
+            <div class="plan-card h">
+              <span class="plan-badge h">HIGHER</span>
+              <div class="plan-fee">৳ 150</div>
+              <div class="plan-com">কমিশন: 1.5%</div>
+              <div class="plan-sub">সর্বোচ্চ কমিশন রেট ও প্রিমিয়াম ভিআইপি রিটেইলার সাপোর্ট</div>
+            </div>
+          </div>
+
+          <div class="box" style="background:var(--card2);text-align:left;margin:0;font-size:12px;line-height:1.9;">
+            <b class="g">রেজিস্ট্রেশনের জন্য অ্যাডমিনকে যা পাঠাবেন:</b><br>
+            • আপনার নাম<br>
+            • দোকানের নাম<br>
+            • মোবাইল নম্বর
+          </div>
+        </div>
+        <div style="margin-top:auto">
+          <!-- Call Button without phone number display -->
+          <a href="tel:${ADMIN_HELPLINE}" class="btn o" style="text-decoration:none;margin-bottom:8px;">${I('phone',16)} অ্যাডমিনকে কল দিন</a>
+          <button class="btn" onclick="window.go('login')">লগইন স্ক্রিনে ফিরুন</button>
+        </div>
+      </div>`,
+
+    // 3. FORGOT PIN SCREEN (WhatsApp removed, call button hides number)
+    forgot: () => `
+      <div class="pg">
+        ${hd('PIN রিসেট পলিসি','login')}
+        <div class="box" style="text-align:center;padding:16px;margin-top:4px;">
+          <div style="width:52px;height:52px;border-radius:50%;border:1.5px solid var(--g);margin:0 auto 10px;display:grid;place-items:center;color:var(--g)">${I('lock',26)}</div>
+          <div class="b" style="font-size:16px;margin-bottom:4px;">PIN ভুলে গেছেন?</div>
+          <div style="font-size:12px;color:var(--m);line-height:1.6;margin-bottom:12px;">নিরাপত্তার স্বার্থে সরাসরি রিসেট বন্ধ রয়েছে। PIN রিসেট করতে অ্যাডমিনের সাথে যোগাযোগ করুন।</div>
+          
+          <div class="box" style="background:var(--card2);text-align:left;margin:0;font-size:12px;line-height:2;">
+            <div style="display:flex;justify-content:space-between;"><span class="m">সার্ভিস ফি:</span><b class="g" style="font-family:var(--font-num)">50 ৳</b></div>
+            <div style="border-top:1px solid var(--line);margin:4px 0;"></div>
+            <b class="g">অ্যাডমিনকে যে তথ্যগুলো দিতে হবে:</b><br>
+            1. রিটেইলারের নাম<br>
+            2. দোকানের নাম<br>
+            3. নিবন্ধিত মোবাইল নম্বর
+          </div>
+        </div>
+        <div style="margin-top:auto">
+          <!-- Call button without showing phone number text -->
+          <a href="tel:${ADMIN_HELPLINE}" class="btn" style="text-decoration:none;margin-bottom:8px;">${I('phone',16)} অ্যাডমিনকে কল দিন</a>
+          <button class="btn o" onclick="window.go('login')">লগইন স্ক্রিনে ফিরুন</button>
+        </div>
+      </div>`,
+
+    // 4. HOME DASHBOARD
+    home: () => {
+      if (!currentRetailer) return V.login();
+      const m = getMerchantMetrics();
+      return `
+      <!-- Sleek Header with Official Logo at Top Left -->
+      <div style="display:flex;align-items:center;gap:10px;margin:2px 0 12px;">
+        <img src="${LOGO_URL}" style="width:38px;height:38px;border-radius:10px;object-fit:cover;box-shadow:0 0 10px rgba(0,199,152,0.3)">
+        <div style="flex:1;min-width:0;line-height:1.2;">
+          <b style="font-size:15px;color:var(--t);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${currentRetailer.shopName || 'দোকানের নাম'}</b>
+          <span class="g" style="font-size:11px;font-family:var(--font-num);font-weight:700">UID: ${currentRetailer.uid || 'RTL000000'}</span>
+        </div>
+      </div>
+
+      <!-- Agent Balance Card -->
+      <div class="box" style="background:linear-gradient(135deg,#062e45,#031826 80%);border-color:var(--g);padding:12px;box-shadow:0 0 20px rgba(0,199,152,0.12)">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="g" style="font-size:11px;font-weight:600">ওয়ালেট ব্যালেন্স</span>
+          <span class="m" style="font-size:11px;font-family:var(--font-num)">LIVE</span>
+        </div>
+        <div id="retailerLiveBalDisplay" style="font-size:24px;font-weight:800;font-family:var(--font-num);margin-top:2px;">৳ ${bn(currentRetailer.balance || 0)}</div>
+      </div>
+
+      <!-- KPI Grid -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Today's Sale</div>
+          <div class="kpi-val">৳ ${bn(m.todaySale)}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Month's Sale</div>
+          <div class="kpi-val">৳ ${bn(m.monthSale)}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Total Lifetime</div>
+          <div class="kpi-val">৳ ${bn(m.totalSale)}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Today's Orders</div>
+          <div class="kpi-val">${m.todayOrders}</div>
+          <div class="kpi-split">
+            <span class="ok">${m.successOrders} Success</span>
+            <span class="fail">${m.failedOrders} Failed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="qa">
+        <div onclick="window.go('rec')">${I('rec',20)}রিচার্জ</div>
+        <div onclick="window.go('his')">${I('swap',20)}লেনদেন</div>
+        <div onclick="window.go('rep')">${I('rep',20)}রিপোর্ট</div>
+        <div onclick="window.go('pro')">${I('user',20)}প্রোফাইল</div>
+      </div>
+
+      <!-- Recent Transactions Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 8px;">
+        <span style="font-size:13px;font-weight:700">সাম্প্রতিক লেনদেন</span>
+        <span class="g" style="font-size:11.5px;font-weight:600" onclick="window.go('his')">সব দেখুন ›</span>
+      </div>
+      <div>
+        ${S.txList.slice(0, 4).map(t => renderTxRow(t)).join('') || '<div class="c m" style="padding:16px 0;font-size:12px;">কোনো কার্যক্রম নেই</div>'}
+      </div>`;
+    },
+
+    // 5. RECHARGE SCREEN (Database carrier logos)
+    rec: () => `
+      ${hd('মোবাইল রিচার্জ','home')}
+      <div class="lbl">কাস্টমার নম্বর</div>
+      <div class="in" style="margin-bottom:8px">
+        ${I('phone',18)}
+        <input id="recNumber" inputmode="numeric" maxlength="11" placeholder="01XXXXXXXXX" oninput="window.autoDetectCarrier(this.value)">
+      </div>
+
+      <div class="mode-row">
+        <div class="mode-pill ${S.type==='1'?'s':''}" id="pillPrepaid" onclick="window.setMode('1')">⚡ Prepaid</div>
+        <div class="mode-pill ${S.type==='2'?'s':''}" id="pillPostpaid" onclick="window.setMode('2')">📋 Postpaid</div>
+      </div>
+
+      <div class="lbl">অপারেটর নির্বাচন</div>
+      <div class="ops">
+        ${OPERATORS.map((o,i) => `
+          <div class="op ${i===S.op?'s':''}" id="opCard${i}" onclick="window.pickCarrier(${i})">
+            <span class="ob"><img src="${o.logo}" alt="${o.n}"></span>
+            <b>${o.n}</b>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="lbl">রিচার্জের পরিমাণ (৳ 19 – 5,000)</div>
+      <div class="chips">
+        ${[20, 50, 100, 200, 500, 1000].map(v => `<span onclick="window.setChipAmount(${v})">৳ ${v}</span>`).join('')}
+      </div>
+      <div class="in">
+        <input id="recAmount" inputmode="numeric" placeholder="পরিমাণ লিখুন (যেমন: 29)" oninput="window.handleAmountInput(this.value)">
+      </div>
+      <button class="btn" style="margin-top:6px;" onclick="window.openConfirmModal()">পরবর্তী ধাপ</button>
+    `,
+
+    // 6. SUCCESS RECEIPT
+    ok: () => {
+      const t = S.lastTrx || {};
+      return `
+      <div class="pg">
+        <div style="margin-top:16px;text-align:center">
+          <div style="width:64px;height:64px;border-radius:50%;border:2px solid var(--g);margin:0 auto 10px;display:grid;place-items:center;color:var(--g)">
+            ${I('ck',36,2)}
+          </div>
+          <div class="b" style="font-size:18px;margin-bottom:12px">রিচার্জ সফল হয়েছে</div>
+        </div>
+        <div class="box">
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;"><span class="m">কাস্টমার নম্বর</span><b style="font-family:var(--font-num)">${t.targetNumber || t.number}</b></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;"><span class="m">অপারেটর</span><b>${t.operator}</b></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;"><span class="m">পরিমাণ</span><b class="g" style="font-family:var(--font-num)">৳ ${bn(t.amount)}</b></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11.5px;"><span class="m">TrxID</span><b style="font-family:var(--font-num)">${t.trxId}</b></div>
+        </div>
+        <div style="margin-top:auto">
+          <button class="btn o" style="margin-bottom:8px;" onclick="window.go('his')">লেনদেন তালিকা</button>
+          <button class="btn" onclick="window.go('home')">হোমে ফিরে যান</button>
+        </div>
+      </div>`;
+    },
+
+    // 7. TRANSACTION HISTORY
+    his: () => {
+      let filtered = S.txList;
+      if (S.hisTab === 'recharge') filtered = filtered.filter(t => t.type === 'AIRTIME' || t.targetNumber);
+      if (S.hisTab === 'deposit') filtered = filtered.filter(t => t.type === 'DEPOSIT');
+      if (S.hisTab === 'deduct') filtered = filtered.filter(t => t.type === 'ADMIN_DEDUCT');
+
+      if (S.searchQuery) {
+        const q = S.searchQuery.toLowerCase();
+        filtered = filtered.filter(t => 
+          (t.targetNumber && t.targetNumber.includes(q)) || 
+          (t.trxId && t.trxId.toLowerCase().includes(q)) ||
+          (t.operator && t.operator.toLowerCase().includes(q))
+        );
+      }
+
+      return `
+      ${hd('লেনদেন খতিয়ান','home')}
+      <div class="in" style="margin-bottom:8px;">
+        ${I('search',16)}
+        <input placeholder="নম্বর বা TrxID সার্চ করুন..." value="${S.searchQuery}" oninput="window.handleSearch(this.value)">
+      </div>
+
+      <div class="filter-tabs">
+        <span class="f-chip ${S.hisTab==='all'?'a':''}" onclick="window.setFilter('all')">সব লেনদেন</span>
+        <span class="f-chip ${S.hisTab==='recharge'?'a':''}" onclick="window.setFilter('recharge')">রিচার্জ</span>
+        <span class="f-chip ${S.hisTab==='deposit'?'a':''}" onclick="window.setFilter('deposit')">ব্যালেন্স জমা</span>
+        <span class="f-chip ${S.hisTab==='deduct'?'a':''}" onclick="window.setFilter('deduct')">কর্তন</span>
+      </div>
+
+      <div>
+        ${filtered.length ? filtered.map(t => renderTxRow(t)).join('') : '<div class="c m" style="padding:30px 0;font-size:12px;">কোনো লেনদেন রেকর্ড পাওয়া যায়নি</div>'}
+      </div>`;
+    },
+
+    // 8. RESTORED BEAUTIFUL REPORT PAGE
+    rep: () => {
+      const m = getMerchantMetrics();
+      const brk = getOperatorBreakdown();
+      const days = [30, 65, 45, 85, 55, 95, 75];
+
+      return `
+      ${hd('রিপোর্ট ও পরিসংখ্যান','home')}
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-title">Today's Sales</div><div class="kpi-val">৳ ${bn(m.todaySale)}</div></div>
+        <div class="kpi-card"><div class="kpi-title">Monthly Total</div><div class="kpi-val">৳ ${bn(m.monthSale)}</div></div>
+      </div>
+
+      <!-- Weekly Volume Chart -->
+      <div class="box">
+        <b style="font-size:13px;display:block;margin-bottom:8px;">সাপ্তাহিক রিচার্জ ভলিউম</b>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:100px;padding:4px 0;border-bottom:1px solid var(--line);">
+          ${days.map(h => `<div style="flex:1;background:linear-gradient(var(--g2),var(--g));height:${h}%;border-radius:4px 4px 0 0;"></div>`).join('')}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m);margin-top:6px;font-family:var(--font-num)">
+          <span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span>
+        </div>
+      </div>
+
+      <!-- Operator Share Progress Breakdown -->
+      <div class="box">
+        <b style="font-size:13px;display:block;margin-bottom:10px;">অপারেটর অনুযায়ী রিচার্জ শেয়ার</b>
+        ${OPERATORS.map(op => {
+          const val = brk.map[op.n] || 0;
+          const pct = brk.total > 0 ? ((val / brk.total) * 100).toFixed(0) : 0;
+          return `
+            <div style="margin-bottom:9px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px;">
+                <span>${op.n}</span>
+                <b style="font-family:var(--font-num);">৳ ${bn(val)} (${pct}%)</b>
+              </div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:${pct}%;"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>`;
+    },
+
+    // 9. PROFILE VIEW (Direct PIN change restored + eye visibility)
+    pro: () => {
+      if (!currentRetailer) return V.login();
+      return `
+      ${hd('এজেন্ট প্রোফাইল','home')}
+      <div class="box" style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+        <img src="${LOGO_URL}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;box-shadow:0 0 10px rgba(0,199,152,0.25)">
+        <div style="flex:1;min-width:0;line-height:1.25;">
+          <b style="font-size:15px;color:var(--t);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${currentRetailer.shopName || 'দোকানের নাম'}</b>
+          <div class="m" style="font-size:11.5px;font-family:var(--font-num)">মোবাইল: ${currentRetailer.phone}</div>
+          <div class="g" style="font-size:10.5px;font-family:var(--font-num);font-weight:700">UID: ${currentRetailer.uid || 'N/A'}</div>
+        </div>
+      </div>
+
+      <!-- DIRECT PIN CHANGE FORM (RESTORED AS INSTRUCTED) -->
+      <div class="box">
+        <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          ${I('key',16)} নিরাপত্তা PIN পরিবর্তন করুন
+        </div>
+        
+        <div class="in" style="margin-bottom:6px;">
+          ${I('lock',16)}
+          <div><small>বর্তমান 4 ডিজিটের PIN</small><input type="password" id="oldPinInput" maxlength="4" placeholder="••••"></div>
+          <span class="pin-eye" onclick="window.togglePin('oldPinInput', this)">${I('eye',16)}</span>
+        </div>
+
+        <div class="in" style="margin-bottom:6px;">
+          ${I('lock',16)}
+          <div><small>নতুন 4 ডিজিটের PIN</small><input type="password" id="newPinInput" maxlength="4" placeholder="••••"></div>
+          <span class="pin-eye" onclick="window.togglePin('newPinInput', this)">${I('eye',16)}</span>
+        </div>
+
+        <div class="in" style="margin-bottom:10px;">
+          ${I('lock',16)}
+          <div><small>নতুন PIN পুনরায় নিশ্চিত করুন</small><input type="password" id="confirmPinInput" maxlength="4" placeholder="••••"></div>
+          <span class="pin-eye" onclick="window.togglePin('confirmPinInput', this)">${I('eye',16)}</span>
+        </div>
+
+        <button class="btn" style="padding:10px;" onclick="window.submitChangePin()">PIN পরিবর্তন নিশ্চিত করুন</button>
+      </div>
+
+      <!-- PIN Reset Assistance Notice -->
+      <div class="box" style="font-size:11.5px;line-height:1.7;">
+        <b style="color:var(--t)">PIN ভুলে গেলে করণীয়:</b><br>
+        যদি পিন ভুলে যান, তবে নাম, দোকানের নাম ও নম্বর দিয়ে অ্যাডমিনের মাধ্যমে <b class="g">50 ৳</b> ফি দিয়ে রিসেট করে নিতে পারেন।
+        <div style="margin-top:6px;">
+          <a href="tel:${ADMIN_HELPLINE}" class="btn o" style="padding:6px;font-size:11.5px;text-decoration:none;">${I('phone',14)} অ্যাডমিনকে কল দিন</a>
+        </div>
+      </div>
+
+      <button class="btn danger" style="margin-top:6px;padding:10px;" onclick="window.doLogout()">${I('out',16)} লগআউট করুন</button>
+      `;
+    }
+  };
+
+  // SLIM TRANSACTION ROW
+  function renderTxRow(t) {
+    const isDeposit = t.type === 'DEPOSIT';
+    const isDeduct = t.type === 'ADMIN_DEDUCT';
+    const isSuccess = t.status === 'SUCCESS' || t.status === 'COMPLETED' || t.status === 'SETTLED';
+
+    let iconHtml = '';
+    let title = '';
+    let sub = t.timestamp || 'Recent';
+    let amtClass = '';
+    let sign = '';
+
+    if (isDeposit) {
+      iconHtml = `<div class="tx-icon-wrap" style="color:var(--g)">${I('wal',16)}</div>`;
+      title = 'ব্যালেন্স লোড (Deposit)';
+      amtClass = 'p';
+      sign = '+ ';
+    } else if (isDeduct) {
+      iconHtml = `<div class="tx-icon-wrap" style="color:var(--err)">${I('lock',16)}</div>`;
+      title = 'ব্যালেন্স কর্তন';
+      amtClass = 'm';
+      sign = '- ';
+    } else {
+      const op = OPERATORS.find(o => o.n === t.operator || o.code === t.pcode) || OPERATORS[0];
+      iconHtml = `<div class="tx-icon-wrap"><img src="${op.logo}" alt="${op.n}"></div>`;
+      title = t.targetNumber || t.number || 'কাস্টমার নম্বর';
+      sub = `${t.operator || op.n} • ${sub}`;
+      amtClass = '';
+    }
+
+    return `
+    <div class="tx-row">
+      ${iconHtml}
+      <div class="tx-mid">
+        <b>${title}</b>
+        <span>${sub}</span>
+      </div>
+      <div class="tx-right">
+        <div class="amt ${amtClass}">${sign}৳ ${bn(t.amount)}</div>
+        <span class="tx-tag ${isSuccess?'ok':'fail'}">${isSuccess?'SETTLED':'FAILED'}</span>
+      </div>
+    </div>`;
+  }
+
+  // NAVIGATION CONTROLLER
+  window.go = function(viewId) {
+    const publicViews = ['login', 'create', 'forgot'];
+    if (!currentRetailer && !publicViews.includes(viewId)) viewId = 'login';
+    $('#scr').setAttribute('data-view', viewId);
+    $('#scr').innerHTML = V[viewId] ? V[viewId]() : V.login();
+    $('#scr').scrollTop = 0;
+    $('#nv').innerHTML = publicViews.includes(viewId) ? '' : NV(viewId);
+    if (viewId === 'rec') { S.op = -1; S.amt = 0; }
+  };
+
+  window.setFilter = function(tab) {
+    S.hisTab = tab;
+    window.go('his');
+  };
+
+  window.handleSearch = function(q) {
+    S.searchQuery = toEn(q);
+    window.go('his');
+  };
+
+  window.setMode = function(code) {
+    S.type = code;
+    $('#pillPrepaid')?.classList.toggle('s', code === '1');
+    $('#pillPostpaid')?.classList.toggle('s', code === '2');
+  };
+
+  window.pickCarrier = function(idx) {
+    S.op = idx;
+    OPERATORS.forEach((_, i) => {
+      const el = $(`#opCard${i}`);
+      if (el) el.classList.toggle('s', i === idx);
+    });
+  };
+
+  window.autoDetectCarrier = function(num) {
+    const cleaned = toEn(num);
+    if (cleaned.length >= 3) {
+      const prefix = cleaned.substring(0, 3);
+      const idx = OPERATORS.findIndex(o => o.x.includes(prefix));
+      if (idx !== -1) window.pickCarrier(idx);
+    }
+  };
+
+  window.setChipAmount = function(amt) {
+    S.amt = amt;
+    const el = $('#recAmount');
+    if (el) el.value = amt;
+  };
+
+  window.handleAmountInput = function(val) {
+    S.amt = Number(toEn(val)) || 0;
+  };
+
+  window.openConfirmModal = function() {
+    const num = toEn($('#recNumber')?.value.trim());
+    if (!num || num.length !== 11 || num[0] !== '0') return tw('সঠিক 11 ডিজিটের মোবাইল নম্বর দিন');
+    if (S.op < 0) return tw('অপারেটর সিলেক্ট করুন');
+    if (!S.amt || S.amt < 19 || S.amt > 5000) return tw('পরিমাণ 19 থেকে 5000 টাকা হতে হবে');
+    if (S.amt > (currentRetailer?.balance || 0)) return tw('আপনার ওয়ালেটে পর্যাপ্ত টাকা নেই');
+
+    const op = OPERATORS[S.op];
+    $('#revNumber').innerText = num;
+    $('#revOperator').innerText = op.n;
+    $('#revType').innerText = S.type === '1' ? 'Prepaid' : 'Postpaid';
+    $('#revAmount').innerText = `৳ ${bn(S.amt)}`;
+    $('#revBalanceAfter').innerText = `৳ ${bn((currentRetailer.balance || 0) - S.amt)}`;
+
+    $('#modalConfirmRec').classList.add('s');
+    window.cancelHold();
+  };
+
+  window.closeConfirmModal = function() {
+    window.cancelHold();
+    $('#modalConfirmRec').classList.remove('s');
+  };
+
+  // TAP & HOLD INTERACTION (bKash/Nagad Style)
+  let holdTimer = null;
+  let holdProgress = 0;
+
+  window.startHold = function() {
+    if (holdTimer) clearInterval(holdTimer);
+    holdProgress = 0;
+    const progEl = $('#holdProg');
+    const lblEl = $('#holdLbl');
+    if (lblEl) lblEl.innerText = 'চেপে ধরে রাখুন...';
+
+    holdTimer = setInterval(() => {
+      holdProgress += 5;
+      if (progEl) progEl.style.width = holdProgress + '%';
+      if (holdProgress >= 100) {
+        clearInterval(holdTimer);
+        holdTimer = null;
+        if (lblEl) lblEl.innerText = 'প্রসেসিং হচ্ছে...';
+        window.executeRecharge();
+      }
+    }, 50);
+  };
+
+  window.cancelHold = function() {
+    if (holdTimer) {
+      clearInterval(holdTimer);
+      holdTimer = null;
+    }
+    holdProgress = 0;
+    const progEl = $('#holdProg');
+    const lblEl = $('#holdLbl');
+    if (progEl) progEl.style.width = '0%';
+    if (lblEl) lblEl.innerText = 'চেপে ধরে রাখুন (Hold to Confirm)';
+  };
+
+  // EXECUTE RECHARGE
+  window.executeRecharge = async function() {
+    const num = $('#revNumber').innerText;
+    const op = OPERATORS[S.op];
+    const reqId = 'REQ-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
+
+    try {
+      const res = await fetch(`${SERVER_URL}/api/recharge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          number: num,
+          amount: S.amt,
+          operator: op.n,
+          pcode: op.code,
+          type: S.type,
+          service: "64",
+          source: "RETAILER",
+          phone: currentRetailer.phone,
+          requestId: reqId
+        })
+      });
+
+      const json = await res.json();
+      window.closeConfirmModal();
+
+      if (json.success) {
+        S.lastTrx = json.receipt;
+        window.go('ok');
+      } else {
+        tw(translateError(json.receipt?.failureReason));
+        window.go('his');
+      }
+    } catch (e) {
+      window.closeConfirmModal();
+      tw('ইন্টারনেট বা সার্ভারে সমস্যা হচ্ছে, পুনরায় চেষ্টা করুন');
+    }
+  };
+
+  // PIN CHANGE CONTROLLER (RESTORED)
+  window.submitChangePin = async function() {
+    const oldP = toEn($('#oldPinInput')?.value.trim());
+    const newP = toEn($('#newPinInput')?.value.trim());
+    const cnfP = toEn($('#confirmPinInput')?.value.trim());
+
+    if (!oldP || !newP || !cnfP) return tw('সবগুলো PIN ঘর পূরণ করুন');
+    if (String(oldP) !== String(currentRetailer.pin)) return tw('বর্তমান PIN সঠিক নয়');
+    if (newP.length !== 4) return tw('নতুন PIN অবশ্যই 4 সংখ্যার হতে হবে');
+    if (newP !== cnfP) return tw('নতুন PIN দুটি মেলেনি');
+
+    try {
+      await update(ref(db, `retailers/${currentRetailer.phone}`), { pin: newP });
+      currentRetailer.pin = newP;
+      tw('PIN সফলভাবে পরিবর্তন হয়েছে!');
+      $('#oldPinInput').value = '';
+      $('#newPinInput').value = '';
+      $('#confirmPinInput').value = '';
+    } catch (err) {
+      tw('PIN পরিবর্তন করা যায়নি, আবার চেষ্টা করুন');
+    }
+  };
+
+  // LOGIN CONTROLLER
+  window.doLogin = async function() {
+    const m = toEn($('#mob')?.value.trim());
+    const p = toEn($('#pin')?.value.trim());
+    const btn = $('#btnLoginSubmit');
+
+    if (!m || m.length !== 11) return tw('11 ডিজিটের মোবাইল নম্বর দিন');
+    if (!p || p.length !== 4) return tw('4 ডিজিটের PIN দিন');
+
+    btn.disabled = true;
+    btn.innerText = 'যাচাই হচ্ছে...';
+
+    try {
+      const snap = await get(child(ref(db), `retailers/${m}`));
+      btn.disabled = false;
+      btn.innerText = 'লগইন করুন';
+
+      if (snap.exists()) {
+        const ret = snap.val();
+        if (ret.status === 'blocked') return tw('আপনার অ্যাকাউন্টটি সাময়িক স্থগিত রয়েছে!');
+        if (String(ret.pin).trim() === String(p).trim()) {
+          currentRetailer = { ...ret, phone: m };
+          attachRetailerListeners(m);
+          tw('লগইন সফল হয়েছে!');
+          window.go('home');
+        } else {
+          tw('ভুল PIN নম্বর! পুনরায় সঠিক PIN দিন');
+        }
+      } else {
+        tw('এই নম্বরে কোনো রিটেইলার অ্যাকাউন্ট নেই');
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerText = 'লগইন করুন';
+      tw('নেটওয়ার্কে সমস্যা হচ্ছে, পরে চেষ্টা করুন');
+    }
+  };
+
+  window.doLogout = function() {
+    currentRetailer = null;
+    window.go('login');
+  };
+
+  // Start at Login
+  window.go('login');
+
+  // Exact 2 Seconds Hold for Launch Splash Screen
+  setTimeout(() => {
+    $('#sp')?.classList.add('o');
+    setTimeout(() => $('#sp')?.remove(), 400);
+  }, 2000);
+</script>
+</body>
+</html>
